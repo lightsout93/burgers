@@ -5,12 +5,6 @@ const DBNAME = 'dbname=burgers';
 const USER = 'root';
 const PASS = '';
 
-function connect()
-{
-    $pdo = new PDO('mysql:'.HOST.';'.DBNAME, USER, PASS);
-    return $pdo;
-}
-
 //connect()->query('CREATE TABLE IF NOT EXISTS `users` (
 //  `id` INT NOT NULL PRIMARY KEY AUTO_INCREMENT,
 //  `name` VARCHAR (255) NOT NULL,
