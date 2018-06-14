@@ -1,6 +1,6 @@
 <?php
 include('config.php');
-include('auth.php');
+include('db.php');
 
 $id = array_search('Показать заказы', $_POST);
 if (!$id) {

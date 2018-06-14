@@ -1,5 +1,11 @@
 <?php
 
+function connect()
+{
+    $pdo = new PDO('mysql:'.HOST.';'.DBNAME, USER, PASS);
+    return $pdo;
+}
+
 function authUser($data)
 {
     $pdo = connect();
@@ -22,23 +28,8 @@ function sendMail($userID)
     $pdo = connect();
     $resultOrder = $pdo->query("SELECT * FROM orders WHERE user_id = $userID ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
     $orderNumber = $pdo->query("SELECT * FROM orders WHERE user_id  = $userID")->rowCount();
-    switch ($resultOrder['payment']) {
-        case "on":
-            $payment = 'Оплата наличными.';
-            break;
-        case "off":
-            $payment = 'Оплата картой.';
-            break;
-        default:
-            $payment = '';
-    }
-    switch ($resultOrder['callback']) {
-        case "on":
-            $callback = 'Мы вам перезвоним.';
-            break;
-        default:
-            $callback = '';
-    }
+    $payment = ($resultOrder['payment'] == "on") ? 'Оплата наличными.' : 'Оплата картой.';
+    $callback = ($resultOrder['callback'] == "on") ? 'Мы вам перезвоним.' : '';
     switch ($orderNumber) {
         case "1":
             $orderNumber = 'Это ваш первый заказ.';
@@ -46,10 +37,12 @@ function sendMail($userID)
         default:
             $orderNumber = "Это уже ваш $orderNumber заказ.";
     }
+    $orderNumberMail = ($orderNumber == 1) ? 'Это ваш первый заказ.' : "Это уже ваш $orderNumber заказ.";
+
     $mail = "Заказ №{$resultOrder['id']}
 Ваш заказ будет доставлен по адресу: Ул. {$resultOrder['street']} {$resultOrder['home']} кв. {$resultOrder['part']}, корпус {$resultOrder['appt']}, этаж {$resultOrder['floor']}.
 Ваш заказ: DarkBeefBurger за 500 рублей, 1 шт. $payment 
-$orderNumber $callback
+$orderNumberMail $callback
 Дата и время заказа: {$resultOrder['date_order']}";
     file_put_contents('mail.txt', $mail);
 }
