@@ -1,8 +1,9 @@
 <?php
+require_once __DIR__ . '/vendor/autoload.php';
 
 function connect()
 {
-    $pdo = new PDO('mysql:'.HOST.';'.DBNAME, USER, PASS);
+    $pdo = new PDO('mysql:' . HOST . ';' . DBNAME, USER, PASS);
     return $pdo;
 }
 
@@ -23,7 +24,7 @@ function authUser($data)
     return $userID;
 }
 
-function sendMail($userID)
+function sendMail($userID, $email)
 {
     $pdo = connect();
     $resultOrder = $pdo->query("SELECT * FROM orders WHERE user_id = $userID ORDER BY id DESC LIMIT 1")->fetch(PDO::FETCH_ASSOC);
@@ -39,12 +40,22 @@ function sendMail($userID)
     }
     $orderNumberMail = ($orderNumber == 1) ? 'Это ваш первый заказ.' : "Это уже ваш $orderNumber заказ.";
 
-    $mail = "Заказ №{$resultOrder['id']}
-Ваш заказ будет доставлен по адресу: Ул. {$resultOrder['street']} {$resultOrder['home']} кв. {$resultOrder['part']}, корпус {$resultOrder['appt']}, этаж {$resultOrder['floor']}.
+    $mail = "Ваш заказ будет доставлен по адресу: Ул. {$resultOrder['street']} {$resultOrder['home']} кв. {$resultOrder['part']}, корпус {$resultOrder['appt']}, этаж {$resultOrder['floor']}.
 Ваш заказ: DarkBeefBurger за 500 рублей, 1 шт. $payment 
-$orderNumberMail $callback
-Дата и время заказа: {$resultOrder['date_order']}";
-    file_put_contents('mail.txt', $mail);
+$orderNumberMail $callback";
+
+    $transport = (new Swift_SmtpTransport('smtp.yandex.ru', 465, 'ssl'))
+        ->setUsername('loft.homework5@yandex.ru')
+        ->setPassword('loft.homework51');
+
+    $mailer = new Swift_Mailer($transport);
+
+    $message = (new Swift_Message('Заказ №' . $resultOrder['id']))
+        ->setFrom(['loft.homework5@yandex.ru' => 'loft.homework5'])
+        ->setTo([$email => 'name'])
+        ->setBody($mail);
+
+    $mailer->send($message);
 }
 
 function getUsers()
